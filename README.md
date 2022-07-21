@@ -1,6 +1,7 @@
 # TablistBoard
 Scoreboard and Tablist for Sponge on version 1.16.5.
 ####  ***[LocaleAPI](https://ore.spongepowered.org/Semenkovsky_Ivan/LocaleAPI) plugin is required.***
+All text is specified in the locale files.
 
 Reload command - `/tbreload`. Permission - `tablistboard.reload`
 ##### Placeholders:
@@ -32,6 +33,3 @@ Reload command - `/tbreload`. Permission - `tablistboard.reload`
 `%max_blocks_limit%` - the maximum limit of blocks a player has (using the economy) \
 `%max_subdivisions_limit%` - the maximum limit of subdivisions a player has (using the economy) \
 `%max_members_limit%` - the maximum limit of members a player has (using the economy)
-
-
-All text is specified in the locale files.
