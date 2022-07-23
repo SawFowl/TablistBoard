@@ -6,6 +6,14 @@ All text is specified in the locale files.
 Reload command - `/tbreload`. Permission - `tablistboard.reload`
 ##### Placeholders:
 `%player%` - player name \
+`%display_name%` - player custom name \
+`%ping%` - player ping \
+`%player-uuid%` - player UUID \
+`%player-level%` - player level \
+`%tps%` - server tps \
+`%time%`- minecraft world time(hour:minute) \
+`%online-players%`- current online all players \
+`%staffs-online%`- current online staffs players(staff permission - `tablistboard.staff`) \
 `%world%` - player world \
 `%rank%` - player rank(metaperm) \
 `%prefix%` - player prefix(metaperm) \
