@@ -15,6 +15,7 @@ import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.util.locale.Locales;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import sawfowl.tablistboard.TablistBoard;
 
 public class ScoreboardUtil {
@@ -33,7 +34,8 @@ public class ScoreboardUtil {
 		sawfowl.tablistboard.configure.Scoreboard scoreboard = plugin.getLocales().getScoreboards(player.locale()).get(boardNumber);
 		Objective objective = Objective.builder().criterion(Criteria.DUMMY.get()).displayName(replacer(scoreboard.getObjectiveName(), player)).name("obj").build();
 		scoreboard.getScores().forEach((k, v) -> {
-			objective.findOrCreateScore(replacer(v, player)).setScore(k);
+			Component component = replacer(v, player);
+			if(getLength(component) <= 40) objective.findOrCreateScore(component).setScore(k);
 		});
 		Scoreboard toSet = Scoreboard.builder().build();
 		toSet.addObjective(objective);
@@ -61,6 +63,10 @@ public class ScoreboardUtil {
 
 	private int getBoardNumber(Locale locale) {
 		return boards.containsKey(locale) ? boards.get(locale) : boards.get(Locales.DEFAULT);
+	}
+
+	private int getLength(Component component) {
+		return LegacyComponentSerializer.legacyAmpersand().serialize(component).length();
 	}
 
 }

@@ -16,6 +16,7 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.statistic.Statistic;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import sawfowl.regionguard.api.data.Region;
 import sawfowl.tablistboard.TablistBoard;
@@ -26,6 +27,8 @@ public class ReplaceUtil {
 
 		public static final String PLAYER = "%player%";
 
+		public static final String DISPLAY_NAME = "%display_name%";
+
 		public static final String RANK = "%rank%";
 
 		public static final String PREFIX = "%prefix%";
@@ -33,6 +36,20 @@ public class ReplaceUtil {
 		public static final String SUFFIX = "%suffix%";
 
 		public static final String WORLD = "%world%";
+
+		public static final String PING = "%ping%";
+
+		public static final String PLAYER_UUID = "%player-uuid%";
+
+		public static final String PLAYER_LEVEL = "%player-level%";
+
+		public static final String TPS = "%tps%";
+
+		public static final String TIME = "%time%";
+
+		public static final String ONLINE_PLAYERS = "%online-players%";
+
+		public static final String STAFFS_ONLINE = "%staffs-online%";
 
 		public static final String BALANCE = "%balance%";
 
@@ -86,20 +103,28 @@ public class ReplaceUtil {
 
 	public static Component replacePlaceholders(Component component, ServerPlayer player) {
 		String string = serialize(component);
-		if(string.contains(Keys.PLAYER)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.PLAYER).replacement(player.name()).build());
-		if(string.contains(Keys.RANK)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.RANK).replacement(getOptionValue(player, "rank")).build());
-		if(string.contains(Keys.PREFIX)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.PREFIX).replacement(getOptionValue(player, "prefix")).build());
-		if(string.contains(Keys.SUFFIX)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.SUFFIX).replacement(getOptionValue(player, "suffix")).build());
-		if(string.contains(Keys.WORLD)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.WORLD).replacement(player.world().key().value()).build());
+		component = replace(component, string, Keys.PLAYER, player.name());
+		component = replace(component, string, Keys.DISPLAY_NAME, player.displayName().get());
+		component = replace(component, string, Keys.WORLD, player.world().key().value());
+		component = replace(component, string, Keys.PLAYER_UUID, player.uniqueId().toString());
+		component = replace(component, string, Keys.PING, String.valueOf(player.connection().latency()));
+		component = replace(component, string, Keys.PLAYER_LEVEL, String.valueOf(player.experienceLevel().get()));
+		component = replace(component, string, Keys.TPS, String.valueOf(Sponge.server().ticksPerSecond()));
+		component = replace(component, string, Keys.TIME, player.world().properties().dayTime().hour() + ":" + player.world().properties().dayTime().minute());
+		component = replace(component, string, Keys.ONLINE_PLAYERS, String.valueOf(Sponge.server().onlinePlayers().size()));
+		component = replace(component, string, Keys.STAFFS_ONLINE, String.valueOf(Sponge.server().onlinePlayers().stream().filter(player2 -> (player2.hasPermission("tablistboard.staff"))).count()));
+		component = replace(component, string, Keys.RANK, getOptionValue(player, "rank"));
+		component = replace(component, string, Keys.PREFIX, getOptionValue(player, "prefix"));
+		component = replace(component, string, Keys.SUFFIX, getOptionValue(player, "suffix"));
 		component = replaceStatsPlaceholders(component, string, player);
 		if(economyIsPresent()) {
 			if(string.contains("%currency:")) {
 				String currencyKey = getCurrencyKey(string);
 				Currency currency = getCurrency(currencyKey);
-				component = component.replaceText(TextReplacementConfig.builder().match(Keys.currency(currencyKey)).replacement(getCurrencySymbol(currency)).build());
-				component = component.replaceText(TextReplacementConfig.builder().match(Keys.BALANCE).replacement(getBalance(player, currency)).build());
+				component = replace(component, string, Keys.currency(currencyKey), getCurrencySymbol(currency));
+				component = replace(component, string, Keys.BALANCE, getBalance(player, currency));
 			} else {
-				if(string.contains(Keys.BALANCE)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.BALANCE).replacement(getBalance(player, getDefaultCurrency())).build());
+				component = replace(component, string, Keys.BALANCE, getBalance(player, getDefaultCurrency()));
 			}
 		}
 		return component;
@@ -108,25 +133,25 @@ public class ReplaceUtil {
 	public static Component replacePlaceholders(Component component, ServerPlayer player, Region region, SimpleDateFormat format) {
 		component = replacePlaceholders(component, player);
 		String string = serialize(component);
-		if(string.contains(Keys.REGION) && region.getName(player.locale()).isPresent()) component = component.replaceText(TextReplacementConfig.builder().match(Keys.REGION).replacement(player.world().key().value()).build());
-		if(string.contains(Keys.TYPE)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.TYPE).replacement(region.getType().toString()).build());
-		if(string.contains(Keys.OWNER)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.OWNER).replacement(region.getOwnerName()).build());
-		if(string.contains(Keys.MIN)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.MIN).replacement(region.getCuboid().getMin().toString()).build());
-		if(string.contains(Keys.MAX)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.MAX).replacement(region.getCuboid().getMax().toString()).build());
-		if(string.contains(Keys.REGION_SIZE)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.REGION_SIZE).replacement(String.valueOf(region.getCuboid().getSize())).build());
-		if(string.contains(Keys.DATE)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.DATE).replacement(region.isGlobal() || region.isAdmin() ? "0" : getDateCreated(player, region.getCreationTime(), format)).build());
-		if(string.contains(Keys.MEMBERS_SIZE)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.MEMBERS_SIZE).replacement(String.valueOf(region.getTotalMembers())).build());
-		if(string.contains(Keys.REGION_ROLE)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.REGION_ROLE).replacement(region.getMemberData(player).isPresent() ? region.getMemberData(player).get().getTrustType().toString() : "-").build());
-		if(string.contains(Keys.CLAIMS_CREATED)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.CLAIMS_CREATED).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getClaimedRegions(player))).build());
-		if(string.contains(Keys.CLAIMS_LIMIT)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.CLAIMS_LIMIT).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitClaims(player))).build());
-		if(string.contains(Keys.BLOCKS_CLAIMED)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.BLOCKS_CLAIMED).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getClaimedBlocks(player))).build());
-		if(string.contains(Keys.BLOCKS_LIMIT)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.BLOCKS_LIMIT).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitBlocks(player))).build());
-		if(string.contains(Keys.SUBDIVISIONS_LIMIT)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.SUBDIVISIONS_LIMIT).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitSubdivisions(player))).build());
-		if(string.contains(Keys.MEMBERS_LIMIT)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.MEMBERS_LIMIT).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMembers(player))).build());
-		if(string.contains(Keys.MAX_CLAIMS_LIMIT)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.MAX_CLAIMS_LIMIT).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMaxClaims(player))).build());
-		if(string.contains(Keys.MAX_BLOCKS_LIMIT)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.MAX_BLOCKS_LIMIT).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMaxBlocks(player))).build());
-		if(string.contains(Keys.MAX_SUBDIVISIONS_LIMIT)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.MAX_SUBDIVISIONS_LIMIT).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMaxSubdivisions(player))).build());
-		if(string.contains(Keys.MAX_MEMBERS_LIMIT)) component = component.replaceText(TextReplacementConfig.builder().match(Keys.MAX_MEMBERS_LIMIT).replacement(String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMaxMembers(player))).build());
+		component = replace(component, string, Keys.REGION, tryDeserialize(!region.isGlobal() && region.getName(player.locale()).isPresent() ? region.getName(player.locale()).get() : region.getOwnerName()));
+		component = replace(component, string, Keys.TYPE, region.getType().toString());
+		component = replace(component, string, Keys.OWNER, region.getOwnerName());
+		component = replace(component, string, Keys.MIN, !region.isGlobal() ? region.getCuboid().getMin().toString() : player.world().min().toInt().toString());
+		component = replace(component, string, Keys.MAX, !region.isGlobal() ? region.getCuboid().getMax().toString() : player.world().max().toInt().toString());
+		component = replace(component, string, Keys.REGION_SIZE, !region.isGlobal() ? region.getCuboid().getSizeXYZ().toInt().toString() : player.world().size().toInt().toString());
+		component = replace(component, string, Keys.DATE, getDateCreated(player, region.getCreationTime(), format));
+		component = replace(component, string, Keys.MEMBERS_SIZE, String.valueOf(region.getTotalMembers()));
+		component = replace(component, string, Keys.REGION_ROLE, region.getMemberData(player).isPresent() ? region.getMemberData(player).get().getTrustType().toString() : "-");
+		component = replace(component, string, Keys.CLAIMS_CREATED, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getClaimedRegions(player)));
+		component = replace(component, string, Keys.CLAIMS_LIMIT, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitClaims(player)));
+		component = replace(component, string, Keys.BLOCKS_CLAIMED, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getClaimedBlocks(player)));
+		component = replace(component, string, Keys.BLOCKS_LIMIT, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitBlocks(player)));
+		component = replace(component, string, Keys.SUBDIVISIONS_LIMIT, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitSubdivisions(player)));
+		component = replace(component, string, Keys.MEMBERS_LIMIT, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMembers(player)));
+		component = replace(component, string, Keys.MAX_CLAIMS_LIMIT, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMaxClaims(player)));
+		component = replace(component, string, Keys.MAX_BLOCKS_LIMIT, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMaxBlocks(player)));
+		component = replace(component, string, Keys.MAX_SUBDIVISIONS_LIMIT, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMaxSubdivisions(player)));
+		component = replace(component, string, Keys.MAX_MEMBERS_LIMIT, String.valueOf(TablistBoard.getInstance().getRegionUtil().getRegionAPI().getLimitMaxMembers(player)));
 		return component;
 	}
 
@@ -136,10 +161,18 @@ public class ReplaceUtil {
 			Optional<Statistic> optStatistic = getStatistic(player, statisticKey);
 			if(optStatistic.isPresent()) {
 				Statistic statistic = optStatistic.get();
-				component = component.replaceText(TextReplacementConfig.builder().match(Keys.statisticKey(statisticKey)).replacement(String.valueOf(player.get(org.spongepowered.api.data.Keys.STATISTICS).get().get(statistic))).build());
+				component = replace(component, plain, Keys.statisticKey(statisticKey), String.valueOf(player.get(org.spongepowered.api.data.Keys.STATISTICS).get().get(statistic)));
 			}
 		}
 		return component;
+	}
+
+	private static Component replace(Component component, String plain, String placeholder, String value) {
+		return plain.contains(placeholder) ? component.replaceText(TextReplacementConfig.builder().match(placeholder).replacement(value).build()) : component;
+	}
+
+	private static Component replace(Component component, String plain, String placeholder, Component value) {
+		return plain.contains(placeholder) ? component.replaceText(TextReplacementConfig.builder().match(placeholder).replacement(value).build()) : component;
 	}
 
 	private static Component getOptionValue(ServerPlayer player, String option) {
@@ -158,6 +191,14 @@ public class ReplaceUtil {
 
 	private static String serialize(Component component) {
 		return LegacyComponentSerializer.legacyAmpersand().serialize(component);
+	}
+
+	private static Component tryDeserialize(String string) {
+		try {
+			return GsonComponentSerializer.gson().deserialize(string);
+		} catch (Exception e) {
+			return LegacyComponentSerializer.legacyAmpersand().deserialize(string);
+		}
 	}
 
 	private static String getStatisticKey(String string) {
