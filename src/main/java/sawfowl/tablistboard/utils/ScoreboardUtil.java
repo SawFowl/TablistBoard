@@ -40,7 +40,10 @@ public class ScoreboardUtil {
 		Scoreboard toSet = Scoreboard.builder().build();
 		toSet.addObjective(objective);
 		toSet.updateDisplaySlot(objective, DisplaySlots.SIDEBAR.get());
-		player.setScoreboard(toSet);
+		try {
+			player.setScoreboard(toSet);
+		} catch (Exception e) {
+		}
 	}
 
 	public void scheduleChangeBoardNumber() {

@@ -148,7 +148,7 @@ public class TablistBoard {
 
 	@Listener
 	public void onConnect(ServerSideConnectionEvent.Join event) {
-		Sponge.asyncScheduler().submit(Task.builder().plugin(pluginContainer).execute(() -> {
+		Sponge.asyncScheduler().submit(Task.builder().plugin(pluginContainer).delay(config.getScoreboardTimer(), TimeUnit.SECONDS).execute(() -> {
 			tablistUtil.setTablist(event.player());
 			scoreboardUtil.setScoreboard(event.player());
 		}).build());
