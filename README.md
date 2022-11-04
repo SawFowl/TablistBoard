@@ -50,17 +50,17 @@ Reload command - `/tbreload`. Permission - `tablistboard.reload`
 public class Main {
 
     @Listener
-    public void onPostMineAPIEvent(SetTablistEvent event) {
+    public void onSetTablistEvent(SetTablistEvent event) {
       //Your code
     }
 
     @Listener
-    public void onPostMineAPIEvent(SetTablistEvent.SetEntry event) {
+    public void onSetEntry(SetTablistEvent.SetEntry event) {
       //Your code
     }
 
     @Listener
-    public void onPostMineAPIEvent(SetScoreboardEvent event) {
+    public void onSetScoreboardEvent(SetScoreboardEvent event) {
       //Your code
     }
 
