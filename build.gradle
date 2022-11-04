@@ -33,6 +33,7 @@ dependencies {
 	implementation "org.spongepowered:spongeapi:8.0.0"
 	implementation "com.github.SawFowl:LocaleAPI:2.2.0"
 	implementation 'com.github.SawFowl:RegionGuard:1.5.0'
+	implementation 'com.github.jitpack:gradle-simple:1.0'
 	//implementation fileTree(dir: 'libs', include: '*.jar')
 }
 
