@@ -24,6 +24,10 @@ public class Scoreboard {
 	@Setting("Scores")
 	private Map<Integer, String> scores;
 
+	public Scoreboard copy() {
+		return new Scoreboard(objectiveName, scores);
+	}
+
 	public Component getObjectiveName() {
 		return deserialize(objectiveName);
 	}
