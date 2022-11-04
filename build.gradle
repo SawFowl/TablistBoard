@@ -121,3 +121,20 @@ javadoc {
 	include '**/*.java'
 	options.addStringOption('Xdoclint:none', '-quiet')
 }
+
+publishing {
+    publications {
+        myLibrary(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'com.github.SawFowl'
+            url = layout.buildDirectory.dir("repo")
+        }
+    }
+}
