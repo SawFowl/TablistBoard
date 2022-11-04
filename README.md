@@ -41,3 +41,42 @@ Reload command - `/tbreload`. Permission - `tablistboard.reload`
 `%max_blocks_limit%` - the maximum limit of blocks a player has (using the economy) \
 `%max_subdivisions_limit%` - the maximum limit of subdivisions a player has (using the economy) \
 `%max_members_limit%` - the maximum limit of members a player has (using the economy)
+
+
+**For developers:** \
+**Use events:**
+```java
+@Plugin("pluginid")
+public class Main {
+
+    @Listener
+    public void onPostMineAPIEvent(SetTablistEvent event) {
+      //Your code
+    }
+
+    @Listener
+    public void onPostMineAPIEvent(SetTablistEvent.SetEntry event) {
+      //Your code
+    }
+
+    @Listener
+    public void onPostMineAPIEvent(SetScoreboardEvent event) {
+      //Your code
+    }
+
+}
+```
+**Gradle:**
+```gradle
+repositories {
+	...
+	maven { 
+		name = "JitPack"
+		url 'https://jitpack.io' 
+	}
+}
+dependencies {
+	...
+	implementation 'com.github.SawFowl:TablistBoard:1.1'
+}
+```
