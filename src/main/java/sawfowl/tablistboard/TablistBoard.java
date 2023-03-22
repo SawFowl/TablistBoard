@@ -104,6 +104,7 @@ public class TablistBoard {
 		localeService = event.getLocaleService();
 		config = new Config(instance);
 		locales = new Locales(instance);
+		Sponge.eventManager().registerListeners(pluginContainer, locales);
 		if(Sponge.pluginManager().plugin("regionguard").isPresent()) {
 			tablistUtil = new TablistUtil(instance, true);
 			scoreboardUtil = new ScoreboardUtil(instance, true);
@@ -148,20 +149,19 @@ public class TablistBoard {
 
 	@Listener
 	public void onConnect(ServerSideConnectionEvent.Join event) {
-		Sponge.asyncScheduler().submit(Task.builder().plugin(pluginContainer).delay(config.getScoreboardTimer(), TimeUnit.SECONDS).execute(() -> {
-			tablistUtil.setTablist(event.player());
-			scoreboardUtil.setScoreboard(event.player());
+		Sponge.asyncScheduler().submit(Task.builder().plugin(pluginContainer).delay(5, TimeUnit.SECONDS).execute(() -> {
+			if(config.getTablistTimer() > 0) tablistUtil.setTablist(event.player());
+			if(config.getScoreboardTimer() > 0) scoreboardUtil.setScoreboard(event.player());
 		}).build());
-		event.player().statistics();
 	}
 
 	private void scheduleTabAndBoard() {
-		Sponge.asyncScheduler().submit(Task.builder().interval(config.getTablistTimer(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
+		if(config.getTablistTimer() > 0) Sponge.asyncScheduler().submit(Task.builder().interval(config.getTablistTimer(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
 			Sponge.server().onlinePlayers().forEach(player -> {
 				tablistUtil.setTablist(player);
 			});
 		}).build());
-		Sponge.asyncScheduler().submit(Task.builder().interval(config.getScoreboardTimer(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
+		if(config.getScoreboardTimer() > 0) Sponge.asyncScheduler().submit(Task.builder().interval(config.getScoreboardTimer(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
 			Sponge.server().onlinePlayers().forEach(player -> {
 				scoreboardUtil.setScoreboard(player);
 			});

@@ -210,13 +210,13 @@ public class ReplaceUtil {
 	}
 
 	private static String getBalance(ServerPlayer player, Currency currency) {
-        try {
-            Optional<UniqueAccount> uOpt = Sponge.server().serviceProvider().economyService().get().findOrCreateAccount(player.uniqueId());
-            if (uOpt.isPresent()) {
-                return uOpt.get().balance(currency).setScale(2).toPlainString();
-            }
-        } catch (Exception ignored) {
-        }
+		try {
+			Optional<UniqueAccount> uOpt = Sponge.server().serviceProvider().economyService().get().findOrCreateAccount(player.uniqueId());
+			if (uOpt.isPresent()) {
+				return uOpt.get().balance(currency).setScale(2).toPlainString();
+			}
+		} catch (Exception ignored) {
+		}
 		return "";
 	}
 

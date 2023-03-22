@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.statistic.Statistics;
 import org.spongepowered.configurate.serialize.SerializationException;
 
@@ -16,6 +17,7 @@ import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import sawfowl.localeapi.api.ConfigTypes;
+import sawfowl.localeapi.event.LocaleEvent;
 import sawfowl.localeapi.utils.AbstractLocaleUtil;
 import sawfowl.tablistboard.TablistBoard;
 import sawfowl.tablistboard.utils.ReplaceUtil;
@@ -37,6 +39,12 @@ public class Locales {
 		plugin.getLocaleService().createPluginLocale("tablistboard", ConfigTypes.JSON, org.spongepowered.api.util.locale.Locales.RU_RU);
 		generateDefault();
 		generateRu();
+		loadBoards();
+		loadTablists();
+	}
+
+	@Listener
+	public void onUpdate(LocaleEvent event) {
 		loadBoards();
 		loadTablists();
 	}

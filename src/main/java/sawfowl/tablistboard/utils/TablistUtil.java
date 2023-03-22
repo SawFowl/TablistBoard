@@ -3,6 +3,7 @@ package sawfowl.tablistboard.utils;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
@@ -11,7 +12,6 @@ import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.event.EventContext;
 import org.spongepowered.api.event.EventContextKeys;
 import org.spongepowered.api.scheduler.Task;
-import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.util.locale.Locales;
 
 import net.kyori.adventure.text.Component;
@@ -65,6 +65,10 @@ public class TablistUtil {
 			public void setFooter(Component component) {
 				footer = component;
 			}
+			@Override
+			public ServerPlayer getPlayer() {
+				return player;
+			}
 		};
 		Sponge.eventManager().post(tablistEvent);
 		if(tablistEvent.isCancelled()) return;
@@ -111,7 +115,7 @@ public class TablistUtil {
 		plugin.getLocales().getTablists().keySet().forEach(k -> {
 			tabs.put(k, 0);
 		});
-		Sponge.asyncScheduler().submit(Task.builder().delay(Ticks.of(5)).plugin(plugin.getPluginContainer()).execute(() -> {
+		Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getTablistSwitchInterval(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
 			tabs.forEach((k, v) -> {
 				if(v + 1 < plugin.getLocales().getTablists(k).size()) {
 					v++;

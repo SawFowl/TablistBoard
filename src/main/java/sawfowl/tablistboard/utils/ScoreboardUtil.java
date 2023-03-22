@@ -3,6 +3,7 @@ package sawfowl.tablistboard.utils;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
@@ -14,7 +15,6 @@ import org.spongepowered.api.scoreboard.Scoreboard;
 import org.spongepowered.api.scoreboard.criteria.Criteria;
 import org.spongepowered.api.scoreboard.displayslot.DisplaySlots;
 import org.spongepowered.api.scoreboard.objective.Objective;
-import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.util.locale.Locales;
 
 import net.kyori.adventure.text.Component;
@@ -99,7 +99,7 @@ public class ScoreboardUtil {
 		plugin.getLocales().getScoreboards().keySet().forEach(k -> {
 			boards.put(k, 0);
 		});
-		Sponge.asyncScheduler().submit(Task.builder().delay(Ticks.of(5)).plugin(plugin.getPluginContainer()).execute(() -> {
+		Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getScoreboardSwitchInterval(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
 			boards.forEach((k, v) -> {
 				if(v + 1 < plugin.getLocales().getScoreboards(k).size()) {
 					v++;

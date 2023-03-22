@@ -77,6 +77,6 @@ repositories {
 }
 dependencies {
 	...
-	implementation 'com.github.SawFowl:TablistBoard:1.1'
+	implementation 'com.github.SawFowl:TablistBoard:1.2'
 }
 ```

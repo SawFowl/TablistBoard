@@ -1,5 +1,6 @@
 package sawfowl.tablistboard.event;
 
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.entity.living.player.tab.TabListEntry;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
@@ -7,6 +8,8 @@ import org.spongepowered.api.event.Event;
 import net.kyori.adventure.text.Component;
 
 public interface SetTablistEvent extends Event, Cancellable {
+
+	public ServerPlayer getPlayer();
 
 	public Component getHeader();
 

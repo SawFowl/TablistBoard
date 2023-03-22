@@ -51,6 +51,16 @@ public class Config {
 		return getNode("Timers", "Scoreboard").getInt(5);
 	}
 
+	public int getTablistSwitchInterval() {
+		int value = getNode("Timers", "SwitchTablist").getInt(5);
+		return value > 0 ? value : 5 ;
+	}
+
+	public int getScoreboardSwitchInterval() {
+		int value = getNode("Timers", "SwitchScoreboard").getInt(5);
+		return value > 0 ? value : 5 ;
+	}
+
 	public boolean isJsonLocales() {
 		return getNode("LocaleJsonSerialize").getBoolean(false);
 	}
@@ -61,8 +71,10 @@ public class Config {
 
 	private void generate() {
 		check(getNode("Timers"), "Refresh intervals.", null, null);
-		check(getNode("Timers", "Tablist"), null, 15, TypeTokens.INTEGER_TOKEN);
-		check(getNode("Timers", "Scoreboard"), null, 5, TypeTokens.INTEGER_TOKEN);
+		check(getNode("Timers", "Tablist"), "A value of zero or negative will cause a turn off.", 15, TypeTokens.INTEGER_TOKEN);
+		check(getNode("Timers", "Scoreboard"), "A value of zero or negative will cause a turn off.", 5, TypeTokens.INTEGER_TOKEN);
+		check(getNode("Timers", "SwitchTablist"), "Seconds before moving to the next variant in the localization config.", 15, TypeTokens.INTEGER_TOKEN);
+		check(getNode("Timers", "SwitchScoreboard"), "Seconds before moving to the next variant in the localization config.", 5, TypeTokens.INTEGER_TOKEN);
 		check(getNode("LocaleJsonSerialize"), null, true, TypeTokens.BOOLEAN_TOKEN);
 		check(getNode("DateTimeFormat"), null, "d.MM.yyyy HH:mm:s", TypeTokens.STRING_TOKEN);
 		format = new SimpleDateFormat(getNode("DateTimeFormat").getString());
@@ -75,18 +87,18 @@ public class Config {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void check(CommentedConfigurationNode node, String comment, Object value, TypeToken typeToken) {
-        if(!node.virtual()) return;
-    	save = true;
-    	if(comment != null) {
-        	node.comment(comment);
-    	}
-    	if(value != null) {
+		if(!node.virtual()) return;
+		save = true;
+		if(comment != null) {
+			node.comment(comment);
+		}
+		if(value != null) {
 			try {
 				node.set(typeToken, value);
 			} catch (SerializationException e) {
 				plugin.getLogger().error(e.getLocalizedMessage());
 			}
-    	}
-    }
+		}
+	}
 
 }
