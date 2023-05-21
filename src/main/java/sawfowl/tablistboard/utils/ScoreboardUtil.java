@@ -10,6 +10,7 @@ import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.event.EventContext;
 import org.spongepowered.api.event.EventContextKeys;
+import org.spongepowered.api.scheduler.ScheduledTask;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.scoreboard.Scoreboard;
 import org.spongepowered.api.scoreboard.criteria.Criteria;
@@ -28,6 +29,7 @@ public class ScoreboardUtil {
 	private final boolean existRegionAPI;
 	private Map<Locale, Integer> boards = new HashMap<Locale, Integer>();
 	private final Cause cause;
+	private ScheduledTask task;
 	public ScoreboardUtil(TablistBoard plugin, boolean existRegionAPI) {
 		this.plugin = plugin;
 		this.existRegionAPI = existRegionAPI;
@@ -95,11 +97,15 @@ public class ScoreboardUtil {
 	}
 
 	public void scheduleChangeBoardNumber() {
+		if(task != null) {
+			task.cancel();
+			task = null;
+		}
 		boards.clear();
 		plugin.getLocales().getScoreboards().keySet().forEach(k -> {
 			boards.put(k, 0);
 		});
-		Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getScoreboardSwitchInterval(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
+		task = Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getScoreboardSwitchInterval(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
 			boards.forEach((k, v) -> {
 				if(v + 1 < plugin.getLocales().getScoreboards(k).size()) {
 					v++;

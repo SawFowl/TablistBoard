@@ -11,6 +11,7 @@ import org.spongepowered.api.entity.living.player.tab.TabListEntry;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.event.EventContext;
 import org.spongepowered.api.event.EventContextKeys;
+import org.spongepowered.api.scheduler.ScheduledTask;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.util.locale.Locales;
 
@@ -24,6 +25,7 @@ public class TablistUtil {
 	private final boolean existRegionAPI;
 	private Map<Locale, Integer> tabs = new HashMap<Locale, Integer>();
 	private final Cause cause;
+	private ScheduledTask task;
 	public TablistUtil(TablistBoard plugin, boolean existRegionAPI) {
 		this.plugin = plugin;
 		this.existRegionAPI = existRegionAPI;
@@ -111,11 +113,15 @@ public class TablistUtil {
 	}
 
 	public void scheduleChangeTabNumber() {
+		if(task != null) {
+			task.cancel();
+			task = null;
+		}
 		tabs.clear();
 		plugin.getLocales().getTablists().keySet().forEach(k -> {
 			tabs.put(k, 0);
 		});
-		Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getTablistSwitchInterval(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
+		task = Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getTablistSwitchInterval(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
 			tabs.forEach((k, v) -> {
 				if(v + 1 < plugin.getLocales().getTablists(k).size()) {
 					v++;

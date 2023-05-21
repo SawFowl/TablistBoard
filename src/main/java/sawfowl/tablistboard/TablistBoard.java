@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
@@ -13,13 +14,15 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.exception.CommandException;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
+import org.spongepowered.api.event.lifecycle.RefreshGameEvent;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.network.ServerSideConnectionEvent;
+import org.spongepowered.api.scheduler.ScheduledTask;
 import org.spongepowered.api.scheduler.Task;
-import org.spongepowered.api.util.locale.LocaleSource;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
@@ -28,6 +31,7 @@ import com.google.inject.Inject;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+
 import sawfowl.localeapi.api.LocaleService;
 import sawfowl.localeapi.event.LocaleServiseEvent;
 import sawfowl.tablistboard.configure.Config;
@@ -50,6 +54,9 @@ public class TablistBoard {
 	private RegionUtil regionUtil;
 	private TablistUtil tablistUtil;
 	private ScoreboardUtil scoreboardUtil;
+
+	private ScheduledTask tabScheduler;
+	private ScheduledTask scoreboardScheduler;
 
 	public static TablistBoard getInstance() {
 		return instance;
@@ -129,17 +136,9 @@ public class TablistBoard {
 				.executor(new CommandExecutor() {
 					@Override
 					public CommandResult execute(CommandContext context) throws CommandException {
-						if(!context.associatedObject().isPresent()) return CommandResult.success();
-						config.loadConfig();
-						getLocaleService().getPluginLocales("tablistboard").values().forEach(locale -> {
-							locale.reload();
-						});
-						locales.loadTablists();
-						locales.loadBoards();
-						Sponge.asyncScheduler().tasks(pluginContainer).clear();
-						scheduleTabAndBoard();
-						tablistUtil.scheduleChangeTabNumber();
-						((Audience) context.associatedObject().get()).sendMessage(getLocales().getText(((LocaleSource) context.associatedObject().get()).locale(), LocalesPaths.RELOAD_MESSAGE));
+						Audience audience = context.cause().audience();
+						reload();
+						audience.sendMessage(getLocales().getText(audience instanceof ServerPlayer ? ((ServerPlayer) audience).locale() : localeService.getSystemOrDefaultLocale(), LocalesPaths.RELOAD_MESSAGE));
 						return CommandResult.success();
 					}
 				})
@@ -155,17 +154,50 @@ public class TablistBoard {
 		}).build());
 	}
 
+	@Listener
+	public void onRefresh(RefreshGameEvent event) {
+		reload();
+		event.cause().first(Audience.class).ifPresent(audience -> {
+			audience.sendMessage(getLocales().getText(event.cause().first(ServerPlayer.class).map(ServerPlayer::locale).orElse(localeService.getSystemOrDefaultLocale()), LocalesPaths.RELOAD_MESSAGE));
+		});
+	}
+
+	private void reload() {
+		config.loadConfig();
+		getLocaleService().getPluginLocales("tablistboard").values().forEach(locale -> {
+			locale.reload();
+		});
+		locales.loadTablists();
+		locales.loadBoards();
+		if(tabScheduler != null) {
+			tabScheduler.cancel();
+			tabScheduler = null;
+		}
+		if(scoreboardScheduler != null) {
+			scoreboardScheduler.cancel();
+			scoreboardScheduler = null;
+		}
+		Sponge.asyncScheduler().tasks(pluginContainer).clear();
+		scheduleTabAndBoard();
+	}
+
 	private void scheduleTabAndBoard() {
-		if(config.getTablistTimer() > 0) Sponge.asyncScheduler().submit(Task.builder().interval(config.getTablistTimer(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
-			Sponge.server().onlinePlayers().forEach(player -> {
-				tablistUtil.setTablist(player);
-			});
-		}).build());
-		if(config.getScoreboardTimer() > 0) Sponge.asyncScheduler().submit(Task.builder().interval(config.getScoreboardTimer(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
-			Sponge.server().onlinePlayers().forEach(player -> {
-				scoreboardUtil.setScoreboard(player);
-			});
-		}).build());
+		if(config.getTablistTimer() > 0) { 
+			tablistUtil.scheduleChangeTabNumber();
+			tabScheduler =  Sponge.asyncScheduler().submit(Task.builder().interval(config.getTablistTimer(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
+				Sponge.server().onlinePlayers().forEach(player -> {
+					tablistUtil.setTablist(player);
+				});
+			}).build());
+		}
+		if(config.getScoreboardTimer() > 0) {
+			scoreboardUtil.scheduleChangeBoardNumber();
+			scoreboardScheduler = Sponge.asyncScheduler().submit(Task.builder().interval(config.getScoreboardTimer(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
+				Sponge.server().onlinePlayers().forEach(player -> {
+					scoreboardUtil.setScoreboard(player);
+				});
+			}).build());
+		}
 	}
 
 }
