@@ -77,7 +77,7 @@ public class TablistUtil {
 		player.tabList().entries().stream().filter(e -> Sponge.server().player(e.profile().uniqueId()).isPresent()).forEach(entry -> {
 			SetTablistEvent.SetEntry setEntry = new SetTablistEvent.SetEntry() {
 
-				Component newDisplayName = plugin.getLocales().getLocale(player.locale()).getTablists().get(getTabNumber(player.locale())).getPattern(player);
+				Component newDisplayName = plugin.getLocales().getLocale(player.locale()).getTablists().get(getTabNumber(player.locale())).getPattern(entry);
 				boolean cancelled;
 				@Override
 				public void setCancelled(boolean cancel) {
