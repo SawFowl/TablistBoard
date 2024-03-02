@@ -17,7 +17,7 @@ Reload command - `/tbreload`. Permission - `tablistboard.reload`
 `%position%` - player double position \
 `%block-position%` - player integer position \
 `%server-tps%` - server tps \
-`%time%`- minecraft world time(hour:minute) \
+`%world-time%`- minecraft world time(hour:minute) \
 `%online-players%`- current online all players \
 `%staffs-online%`- current online staffs players(staff permission - `tablistboard.staff`) \
 `%player-rank%` - player rank(metaperm) \
@@ -47,4 +47,6 @@ Reload command - `/tbreload`. Permission - `tablistboard.reload`
 `%regionguard:max-subdivisions-limit%` - the maximum limit of subdivisions a player has (using the economy) \
 `%regionguard:max-members-limit%` - the maximum limit of members a player has (using the economy) \
 
-Placeholders can be used by other plugins without depending on this plugin, as long as they use the placeholder API from the LocaleAPI plugin.
+Placeholders can be used by other plugins without depending on this plugin, as long as they use the placeholder API from the LocaleAPI plugin. \
+
+API8(1.16.5) docs -> https://github.com/SawFowl/TablistBoard/blob/API8/README.md
