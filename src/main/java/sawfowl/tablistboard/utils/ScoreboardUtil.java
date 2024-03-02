@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
@@ -26,13 +27,11 @@ import sawfowl.tablistboard.event.SetScoreboardEvent;
 public class ScoreboardUtil {
 
 	private final TablistBoard plugin;
-	private final boolean existRegionAPI;
 	private Map<Locale, Integer> boards = new HashMap<Locale, Integer>();
 	private final Cause cause;
 	private ScheduledTask task;
-	public ScoreboardUtil(TablistBoard plugin, boolean existRegionAPI) {
+	public ScoreboardUtil(TablistBoard plugin) {
 		this.plugin = plugin;
-		this.existRegionAPI = existRegionAPI;
 		cause = Cause.of(EventContext.builder().add(EventContextKeys.PLUGIN, plugin.getPluginContainer()).add(EventContextKeys.SUBJECT, Sponge.systemSubject()).build(), plugin.getPluginContainer());
 		scheduleChangeBoardNumber();
 	}
@@ -41,8 +40,8 @@ public class ScoreboardUtil {
 		int boardNumber = getBoardNumber(player.locale());
 		SetScoreboardEvent scoreboardEvent = new SetScoreboardEvent() {
 
-			sawfowl.tablistboard.configure.Scoreboard scoreboard = plugin.getLocales().getScoreboards(player.locale()).get(boardNumber).copy();
-			Objective objective = Objective.builder().criterion(Criteria.DUMMY.get()).displayName(replacer(scoreboard.getObjectiveName(), player)).name("obj").build();
+			sawfowl.tablistboard.configure.Scoreboard scoreboard = plugin.getLocales().getLocale(player.locale()).getScoreboards().get(boardNumber);
+			Objective objective = Objective.builder().criterion(Criteria.DUMMY.get()).displayName(scoreboard.getObjectiveName(player)).name("obj").build();
 			boolean cancelled;
 			@Override
 			public void setCancelled(boolean cancel) {
@@ -83,9 +82,8 @@ public class ScoreboardUtil {
 		};
 		Sponge.eventManager().post(scoreboardEvent);
 		if(scoreboardEvent.isCancelled()) return;
-		scoreboardEvent.getScoreboard().getScores().forEach((k, v) -> {
-			Component component = replacer(v, player);
-			if(getLength(component) <= 40) scoreboardEvent.getObjective().findOrCreateScore(component).setScore(k);
+		scoreboardEvent.getScoreboard().getScores(player).forEach((k, v) -> {
+			if(getLength(v) <= 40) scoreboardEvent.getObjective().findOrCreateScore(v).setScore(k);
 		});
 		Scoreboard scoreboard = Scoreboard.builder().build();
 		scoreboard.addObjective(scoreboardEvent.getObjective());
@@ -102,20 +100,14 @@ public class ScoreboardUtil {
 			task = null;
 		}
 		boards.clear();
-		plugin.getLocales().getScoreboards().keySet().forEach(k -> {
-			boards.put(k, 0);
-		});
-		task = Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getScoreboardSwitchInterval(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
+		boards = plugin.getLocales().getLocales().keySet().stream().collect(Collectors.toMap(locale -> locale, locale -> 0));
+		task = Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getSwitchScoreboard(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
 			boards.forEach((k, v) -> {
-				if(v + 1 < plugin.getLocales().getScoreboards(k).size()) {
+				if(v + 1 < plugin.getLocales().getLocale(k).getScoreboards().size()) {
 					v++;
 				} else v = 0;
 			});
 		}).build());
-	}
-
-	private Component replacer(Component component, ServerPlayer player) {
-		return existRegionAPI ? ReplaceUtil.replacePlaceholders(component, player, plugin.getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition()), plugin.getConfig().getSimpleDateFormat()) : ReplaceUtil.replacePlaceholders(component, player);
 	}
 
 	private int getBoardNumber(Locale locale) {

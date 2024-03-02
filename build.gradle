@@ -1,46 +1,23 @@
-buildscript {
-	repositories {
-		maven { url = 'https://maven.minecraftforge.net' }
-		maven { url = 'https://maven.blamejared.com' }
-		mavenCentral()
-	}
-	dependencies {
-		classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.+', changing: true
-	}
-}
-
 plugins {
 	id("java")
 	id("java-library")
-	id("maven-publish")
 	id("eclipse")
+	id("maven-publish")
 	id("org.spongepowered.gradle.plugin") version "2.0.2"
 }
-
-apply plugin: 'net.minecraftforge.gradle'
 
 group = "sawfowl.tablistboard"
 version = "${major}.${minor}.${patch}-${api}-${suffix}"
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_1_8
-	targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-minecraft {
-	mappings channel: 'official', version: '1.16.5'
+	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
 	mavenCentral()
-
-	maven {
-		name = "Forge"
-		url = 'https://maven.minecraftforge.net'
-	}
 	maven {
 		name = "Sponge"
-		url = "https://repo.spongepowered.org/repository/maven-public/"
+		url = "https://repo.spongepowered.org/repository/maven-public"
 	}
 	maven {
 		name = "JitPack"
@@ -53,16 +30,14 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
-	implementation "org.spongepowered:spongeapi:8.0.0"
-	implementation 'org.spongepowered:spongevanilla:1.16.5-8.0.0-RC1111:universal'
-	minecraft 'net.minecraftforge:forge:1.16.5-36.1.16'
-	implementation "com.github.SawFowl:LocaleAPI:2.5.0"
-	implementation 'com.github.SawFowl:RegionGuard:1.5.0'
-	implementation fileTree(dir: 'libs', include: '*.jar')
+	implementation "org.spongepowered:spongeapi:${api}"
+	implementation "com.github.SawFowl:LocaleAPI:${localeapi}"
+	implementation "com.github.SawFowl:RegionGuard:${regionguard}"
+	//implementation fileTree(dir: 'libs', include: '*.jar')
 }
 
 sponge {
-	apiVersion("8.0.0")
+	apiVersion("${api}")
 	loader {
 		name("java_plain")
 		version("1.0")
@@ -79,17 +54,17 @@ sponge {
 		dependency("spongeapi") {
 			optional(false)
 			loadOrder("after")
-			version("8.0.0")
+			version("${api}")
 		}
 		dependency("localeapi") {
 			optional(false)
 			loadOrder("after")
-			version("2.5.0")
+			version("${localeapi}")
 		}
 		dependency("regionguard") {
 			optional(true)
 			loadOrder("after")
-			version("1.5.0")
+			version("${regionguard}")
 		}
 	}
 }

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
@@ -22,13 +23,11 @@ import sawfowl.tablistboard.event.SetTablistEvent;
 public class TablistUtil {
 
 	private final TablistBoard plugin;
-	private final boolean existRegionAPI;
 	private Map<Locale, Integer> tabs = new HashMap<Locale, Integer>();
 	private final Cause cause;
 	private ScheduledTask task;
-	public TablistUtil(TablistBoard plugin, boolean existRegionAPI) {
+	public TablistUtil(TablistBoard plugin) {
 		this.plugin = plugin;
-		this.existRegionAPI = existRegionAPI;
 		cause = Cause.of(EventContext.builder().add(EventContextKeys.PLUGIN, plugin.getPluginContainer()).add(EventContextKeys.SUBJECT, Sponge.systemSubject()).build(), plugin.getPluginContainer());
 		scheduleChangeTabNumber();
 	}
@@ -36,8 +35,8 @@ public class TablistUtil {
 	public void setTablist(ServerPlayer player) {
 		SetTablistEvent tablistEvent = new SetTablistEvent() {
 
-			Component header = replacer(plugin.getLocales().getTablists(player.locale()).get(getTabNumber(player.locale())).getHeader(), player);
-			Component footer = replacer(plugin.getLocales().getTablists(player.locale()).get(getTabNumber(player.locale())).getFooter(), player);
+			Component header = plugin.getLocales().getLocale(player.locale()).getTablists().get(getTabNumber(player.locale())).getHeader(player);
+			Component footer = plugin.getLocales().getLocale(player.locale()).getTablists().get(getTabNumber(player.locale())).getFooter(player);
 			boolean cancelled;
 			@Override
 			public void setCancelled(boolean cancel) {
@@ -75,10 +74,10 @@ public class TablistUtil {
 		Sponge.eventManager().post(tablistEvent);
 		if(tablistEvent.isCancelled()) return;
 		player.tabList().setHeaderAndFooter(tablistEvent.getHeader(), tablistEvent.getFooter());
-		player.tabList().entries().forEach(entry -> {
+		player.tabList().entries().stream().filter(e -> Sponge.server().player(e.profile().uniqueId()).isPresent()).forEach(entry -> {
 			SetTablistEvent.SetEntry setEntry = new SetTablistEvent.SetEntry() {
 
-				Component newDisplayName = replacer(plugin.getLocales().getTablists(player.locale()).get(getTabNumber(player.locale())).getPattern(), Sponge.server().player(entry.profile().uniqueId()).get());
+				Component newDisplayName = plugin.getLocales().getLocale(player.locale()).getTablists().get(getTabNumber(player.locale())).getPattern(player);
 				boolean cancelled;
 				@Override
 				public void setCancelled(boolean cancel) {
@@ -118,20 +117,14 @@ public class TablistUtil {
 			task = null;
 		}
 		tabs.clear();
-		plugin.getLocales().getTablists().keySet().forEach(k -> {
-			tabs.put(k, 0);
-		});
-		task = Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getTablistSwitchInterval(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
+		tabs = plugin.getLocales().getLocales().keySet().stream().collect(Collectors.toMap(locale -> locale, locale -> 0));
+		task = Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getSwitchTablist(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
 			tabs.forEach((k, v) -> {
-				if(v + 1 < plugin.getLocales().getTablists(k).size()) {
+				if(v + 1 < plugin.getLocales().getLocale(k).getTablists().size()) {
 					v++;
 				} else v = 0;
 			});
 		}).build());
-	}
-
-	private Component replacer(Component component, ServerPlayer player) {
-		return existRegionAPI ? ReplaceUtil.replacePlaceholders(component, player, plugin.getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition()), plugin.getConfig().getSimpleDateFormat()) : ReplaceUtil.replacePlaceholders(component, player);
 	}
 
 	private int getTabNumber(Locale locale) {
