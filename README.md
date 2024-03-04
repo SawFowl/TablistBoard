@@ -50,3 +50,44 @@ Reload command - `/tbreload`. Permission - `tablistboard.reload`
 Placeholders can be used by other plugins without depending on this plugin, as long as they use the placeholder API from the LocaleAPI plugin. \
 
 API8(1.16.5) docs -> https://github.com/SawFowl/TablistBoard/blob/API8/README.md
+
+
+**For developers:** \
+**Use events:**
+```java
+@Plugin("pluginid")
+public class Main {
+
+    @Listener
+    public void onSetTablistEvent(SetTablistEvent event) {
+      //Your code
+    }
+
+    @Listener
+    public void onSetEntry(SetTablistEvent.SetEntry event) {
+      //Your code
+    }
+
+    @Listener
+    public void onSetScoreboardEvent(SetScoreboardEvent event) {
+      //Your code
+    }
+
+}
+
+
+```
+**Gradle:**
+```gradle
+repositories {
+	...
+	maven { 
+		name = "JitPack"
+		url 'https://jitpack.io' 
+	}
+}
+dependencies {
+	...
+	implementation 'com.github.SawFowl:TablistBoard:2.0'
+}
+```
