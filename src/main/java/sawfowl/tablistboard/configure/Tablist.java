@@ -22,6 +22,8 @@ public class Tablist {
 		this.pattern = TextUtils.deserialize(pattern);
 	}
 
+	private static final TablistBoard plugin = TablistBoard.getInstance();
+
 	@Setting("Header")
 	private Component header;
 	@Setting("Footer")
@@ -30,17 +32,17 @@ public class Tablist {
 	private Component pattern;
 
 	public Component getHeader(ServerPlayer player) {
-		if(TablistBoard.getInstance().getRegionUtil() != null) return Text.of(header).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), TablistBoard.getInstance().getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get();
+		if(plugin.getRegionUtil() != null) return Text.of(header).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), plugin.getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get();
 		return Text.of(header).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position()).get();
 	}
 
 	public Component getFooter(ServerPlayer player) {
-		if(TablistBoard.getInstance().getRegionUtil() != null) return Text.of(footer).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), TablistBoard.getInstance().getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get();
+		if(plugin.getRegionUtil() != null) return Text.of(footer).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), plugin.getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get();
 		return Text.of(footer).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position()).get();
 	}
 
 	public Component getPattern(ServerPlayer player) {
-		if(TablistBoard.getInstance().getRegionUtil() != null) return Text.of(pattern).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), TablistBoard.getInstance().getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get();
+		if(plugin.getRegionUtil() != null) return Text.of(pattern).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), plugin.getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get();
 		return Text.of(pattern).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position()).get();
 	}
 

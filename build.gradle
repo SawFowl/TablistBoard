@@ -10,7 +10,7 @@ group = "sawfowl.tablistboard"
 version = "${major}.${minor}.${patch}-${api}-${suffix}"
 
 java {
-	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
@@ -31,9 +31,9 @@ tasks.withType(JavaCompile) {
 
 dependencies {
 	implementation "org.spongepowered:spongeapi:${api}"
-	implementation "com.github.SawFowl:LocaleAPI:${localeapi}"
-	implementation "com.github.SawFowl:RegionGuard:${regionguard}"
-	//implementation fileTree(dir: 'libs', include: '*.jar')
+	//implementation "com.github.SawFowl:LocaleAPI:${localeapi}"
+	//implementation "com.github.SawFowl:RegionGuard:${regionguard}"
+	implementation fileTree(dir: 'libs', include: '*.jar')
 }
 
 sponge {
@@ -70,18 +70,18 @@ sponge {
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+	archiveClassifier = 'sources'
+	from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
+	archiveClassifier = 'javadoc'
+	from javadoc.destinationDir
 }
 
 artifacts {
-    archives sourcesJar
-    archives javadocJar
+	archives sourcesJar
+	archives javadocJar
 }
 
 configurations {
@@ -93,23 +93,22 @@ configurations {
 javadoc {
 	options.encoding = 'UTF-8'
 	source configurations.doc.collect { zipTree(it) }
-	include '**/*.java'
 	options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 publishing {
-    publications {
-        myLibrary(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-        }
-    }
+	publications {
+		myLibrary(MavenPublication) {
+			from components.java
+			artifact sourcesJar
+			artifact javadocJar
+		}
+	}
 
-    repositories {
-        maven {
-            name = 'com.github.SawFowl'
-            url = layout.buildDirectory.dir("repo")
-        }
-    }
+	repositories {
+		maven {
+			name = 'com.github.SawFowl'
+			url = layout.buildDirectory.dir("repo")
+		}
+	}
 }

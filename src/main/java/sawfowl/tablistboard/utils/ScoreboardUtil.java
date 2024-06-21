@@ -13,6 +13,7 @@ import org.spongepowered.api.event.EventContext;
 import org.spongepowered.api.event.EventContextKeys;
 import org.spongepowered.api.scheduler.ScheduledTask;
 import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.scoreboard.Score;
 import org.spongepowered.api.scoreboard.Scoreboard;
 import org.spongepowered.api.scoreboard.criteria.Criteria;
 import org.spongepowered.api.scoreboard.displayslot.DisplaySlots;
@@ -21,6 +22,7 @@ import org.spongepowered.api.util.locale.Locales;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import sawfowl.localeapi.api.TextUtils;
 import sawfowl.tablistboard.TablistBoard;
 import sawfowl.tablistboard.event.SetScoreboardEvent;
 
@@ -83,7 +85,11 @@ public class ScoreboardUtil {
 		Sponge.eventManager().post(scoreboardEvent);
 		if(scoreboardEvent.isCancelled()) return;
 		scoreboardEvent.getScoreboard().getScores(player).forEach((k, v) -> {
-			if(getLength(v) <= 40) scoreboardEvent.getObjective().findOrCreateScore(v).setScore(k);
+			if(getLength(v) <= 40) {
+				Score score = scoreboardEvent.getObjective().findOrCreateScore(TextUtils.clearDecorations(v));
+				score.setDisplay(v);
+				score.setScore(k);
+			}
 		});
 		Scoreboard scoreboard = Scoreboard.builder().build();
 		scoreboard.addObjective(scoreboardEvent.getObjective());

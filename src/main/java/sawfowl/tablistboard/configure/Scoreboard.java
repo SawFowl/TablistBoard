@@ -22,6 +22,8 @@ public class Scoreboard {
 		this.scores = scores;
 	}
 
+	private static final TablistBoard plugin = TablistBoard.getInstance();
+
 	@Setting("Objective")
 	private Component objectiveName = Component.text("Objective");
 	@Setting("Scores")
@@ -32,13 +34,13 @@ public class Scoreboard {
 	}
 
 	public Component getObjectiveName(ServerPlayer player) {
-		if(TablistBoard.getInstance().getRegionUtil() != null) return Text.of(objectiveName).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), TablistBoard.getInstance().getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get();
+		if(plugin.getRegionUtil() != null) return Text.of(objectiveName).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), plugin.getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get();
 		return Text.of(objectiveName).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position()).get();
 	}
 
 	public Map<Integer, Component> getScores(ServerPlayer player) {
 		if(scores == null || scores.isEmpty()) return new HashMap<Integer, Component>();
-		if(TablistBoard.getInstance().getRegionUtil() != null) return scores.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> Text.of(entry.getValue()).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), TablistBoard.getInstance().getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get()));
+		if(plugin.getRegionUtil() != null) return scores.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> Text.of(entry.getValue()).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position(), plugin.getRegionUtil().getRegionAPI().findRegion(player.world(), player.blockPosition())).get()));
 		return scores.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> Text.of(entry.getValue()).applyPlaceholders(Component.empty(), player, player.world(), player.location(), player.serverLocation(), player.position()).get()));
 	}
 
