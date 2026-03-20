@@ -12,12 +12,14 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+
+import sawfowl.localeapi.api.Translation;
 import sawfowl.tablistboard.utils.PlaceholderKeys;
 
 @ConfigSerializable
-public class LocaleReference implements AbstractLocale {
+public class PluginLocale implements Translation {
 
-	public LocaleReference(){}
+	public PluginLocale(){}
 
 	@Setting("Tablist")
 	private List<Tablist> tablists = Arrays.asList(new Tablist("&eTablist header\n&dSubheading", "&eTablist footer\n&dString 2", "%player-prefix% %entity-display-name% %player-suffix%"));
@@ -29,28 +31,24 @@ public class LocaleReference implements AbstractLocale {
 	private String dateTimeFormat = "d.MM.yyyy HH:mm:s";
 	private SimpleDateFormat format;
 
-	@Override
 	public List<Tablist> getTablists() {
 		return tablists;
 	}
 
-	@Override
 	public List<Scoreboard> getScoreboards() {
 		return scoreboards;
 	}
 
-	@Override
 	public Component getReload() {
 		return reload;
 	}
 
-	@Override
 	public SimpleDateFormat getDateTimeFormat() {
 		return format == null ? format = new SimpleDateFormat(dateTimeFormat) : format;
 	}
 
-	public static LocaleReference createRussianLocale() {
-		LocaleReference localeReference = new LocaleReference();
+	public static PluginLocale createRussianLocale() {
+		PluginLocale localeReference = new PluginLocale();
 		localeReference.tablists = Arrays.asList(new Tablist("&eЗаголовок таблиста\n&dПодзаголовок", "&eПодвал таблиста\n&dСтрока 2", "%player-prefix% %entity-display-name% %player-suffix%"));
 		Map<Integer, Component> scoreboard = new HashMap<Integer, Component>();
 		scoreboard.put(4, toText("&aБаланс&f:&b %currency:dollar%%player-balance%"));

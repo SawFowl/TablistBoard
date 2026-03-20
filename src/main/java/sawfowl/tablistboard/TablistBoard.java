@@ -13,10 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
-import org.spongepowered.api.command.CommandExecutor;
 import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.exception.CommandException;
-import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
@@ -29,10 +26,8 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.scheduler.ScheduledTask;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.Currency;
-import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.api.util.locale.Locales;
 import org.spongepowered.configurate.ConfigurateException;
-import org.spongepowered.configurate.reference.ConfigurationReference;
-import org.spongepowered.configurate.reference.ValueReference;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
 
@@ -41,11 +36,13 @@ import com.google.inject.Inject;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 
+import sawfowl.localeapi.api.ConfigTypes;
 import sawfowl.localeapi.api.LocaleService;
-import sawfowl.localeapi.api.event.LocaleServiseEvent;
-import sawfowl.localeapi.api.serializetools.SerializeOptions;
+import sawfowl.localeapi.api.LocalesList;
+import sawfowl.localeapi.api.config.ReferencedConfig;
+import sawfowl.localeapi.api.serializetools.ItemStackSerializerType;
 import sawfowl.tablistboard.configure.Config;
-import sawfowl.tablistboard.configure.Locales;
+import sawfowl.tablistboard.configure.PluginLocale;
 import sawfowl.tablistboard.utils.RegionUtil;
 import sawfowl.tablistboard.utils.ScoreboardUtil;
 import sawfowl.tablistboard.utils.TablistUtil;
@@ -57,10 +54,9 @@ public class TablistBoard {
 	private Logger logger;
 	private PluginContainer pluginContainer;
 	private Path configDirectory;
-	private ConfigurationReference<CommentedConfigurationNode> configLoader;
-	private ValueReference<Config, CommentedConfigurationNode> config;
+	private ReferencedConfig<Config> config;
 	private LocaleService localeService;
-	private Locales locales;
+	private LocalesList<PluginLocale> locales;
 	private RegionUtil regionUtil;
 	private TablistUtil tablistUtil;
 	private ScoreboardUtil scoreboardUtil;
@@ -92,7 +88,7 @@ public class TablistBoard {
 		return config.get();
 	}
 
-	public Locales getLocales() {
+	public LocalesList<PluginLocale> getLocales() {
 		return locales;
 	}
 
@@ -106,28 +102,16 @@ public class TablistBoard {
 		this.pluginContainer = pluginContainer;
 		this.configDirectory = configDirectory;
 		logger = LogManager.getLogger("TablistBoard");
+		locales = LocaleService.getInstance().createLocales(pluginContainer, PluginLocale.class);
+		if(!locales.contains(Locales.DEFAULT)) locales.createReferencedTranslation(ConfigTypes.HOCON, Locales.DEFAULT, PluginLocale.class);
+		if(!locales.contains(Locales.RU_RU)) locales.createReferencedTranslation(ConfigTypes.HOCON, Locales.RU_RU, PluginLocale.createRussianLocale());
+		config = ReferencedConfig.create(pluginContainer, configDirectory, "Config", ConfigTypes.HOCON, ItemStackSerializerType.JSON, null, Config.class);
 	}
 
 	@Listener
 	public void onConstruct(ConstructPluginEvent event) {
-		if(Sponge.pluginManager().plugin("regionguard").isPresent()) {
-			regionUtil = new RegionUtil(instance);
-			Sponge.eventManager().registerListeners(pluginContainer, regionUtil);
-		}
-	}
-
-	@Listener
-	public void onLocaleServisePostEvent(LocaleServiseEvent.Construct event) {
-		try {
-			configLoader = SerializeOptions.createHoconConfigurationLoader(2).path(configDirectory.resolve("Config.conf")).build().loadToReference();
-			config = configLoader.referenceTo(Config.class);
-			config.setAndSave(getConfig());
-		} catch (ConfigurateException e) {
-			e.printStackTrace();
-		}
-		localeService = event.getLocaleService();
-		locales = new Locales(instance);
-		Sponge.eventManager().registerListeners(pluginContainer, locales);
+		//logger.warn(Sponge.pluginManager().plugin("regionguard").isPresent());
+		if(Sponge.pluginManager().plugin("regionguard").isPresent()) regionUtil = new RegionUtil();
 		tablistUtil = new TablistUtil(instance);
 		scoreboardUtil = new ScoreboardUtil(instance);
 	}
@@ -143,14 +127,11 @@ public class TablistBoard {
 		Command.Parameterized commandReload = Command.builder()
 				.shortDescription(Component.text("Reload plugin"))
 				.permission("tablistboard.reload")
-				.executor(new CommandExecutor() {
-					@Override
-					public CommandResult execute(CommandContext context) throws CommandException {
-						Audience audience = context.cause().audience();
-						reload();
-						audience.sendMessage(getLocales().getLocale(audience instanceof ServerPlayer ? ((ServerPlayer) audience).locale() : localeService.getSystemOrDefaultLocale()).getReload());
-						return CommandResult.success();
-					}
+				.executor(context -> {
+					Audience audience = context.cause().root() instanceof Audience a ? a : context.cause().audience();
+					reload();
+					audience.sendMessage(getLocales().getAsReferenced(audience instanceof ServerPlayer ? ((ServerPlayer) audience).locale() : localeService.getSystemOrDefaultLocale()).getReload());
+					return CommandResult.success();
 				})
 				.build();
 		event.register(pluginContainer, commandReload, "tbreload");
@@ -167,21 +148,14 @@ public class TablistBoard {
 	@Listener
 	public void onRefresh(RefreshGameEvent event) {
 		reload();
-		event.cause().first(Audience.class).ifPresent(audience -> {
-			audience.sendMessage(getLocales().getLocale(event.cause().first(ServerPlayer.class).map(ServerPlayer::locale).orElse(localeService.getSystemOrDefaultLocale())).getReload());
-		});
+		event.cause().first(Audience.class).ifPresent(audience -> 
+			audience.sendMessage(getLocales().getAsReferenced(event.cause().first(ServerPlayer.class).map(ServerPlayer::locale).orElse(localeService.getSystemOrDefaultLocale())).getReload())
+		);
 	}
 
 	private void reload() {
-		try {
-			configLoader = SerializeOptions.createHoconConfigurationLoader(2).path(configDirectory.resolve("Config.conf")).build().loadToReference();
-			config = configLoader.referenceTo(Config.class);
-		} catch (ConfigurateException e) {
-			e.printStackTrace();
-		}
-		getLocaleService().getPluginLocales("tablistboard").values().forEach(locale -> {
-			locale.reload();
-		});
+		config.load();
+		locales.forEach(locale -> locale.load());
 		if(tabScheduler != null) {
 			tabScheduler.cancel();
 			tabScheduler = null;
@@ -197,11 +171,11 @@ public class TablistBoard {
 	private void scheduleTabAndBoard() {
 		if(getConfig().getTablist() > 0) { 
 			tablistUtil.scheduleChangeTabNumber();
-			tabScheduler =  Sponge.asyncScheduler().submit(Task.builder().interval(getConfig().getTablist(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> {
+			tabScheduler =  Sponge.asyncScheduler().submit(Task.builder().interval(getConfig().getTablist(), TimeUnit.SECONDS).plugin(pluginContainer).execute(() -> 
 				Sponge.server().onlinePlayers().forEach(player -> {
 					if(player.isOnline()) tablistUtil.setTablist(player);
-				});
-			}).build());
+				})
+			).build());
 		}
 		if(getConfig().getScoreboard() > 0) {
 			scoreboardUtil.scheduleChangeBoardNumber();

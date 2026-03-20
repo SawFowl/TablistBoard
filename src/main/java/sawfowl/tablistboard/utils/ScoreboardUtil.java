@@ -42,7 +42,7 @@ public class ScoreboardUtil {
 		int boardNumber = getBoardNumber(player.locale());
 		SetScoreboardEvent scoreboardEvent = new SetScoreboardEvent() {
 
-			sawfowl.tablistboard.configure.Scoreboard scoreboard = plugin.getLocales().getLocale(player.locale()).getScoreboards().get(boardNumber);
+			sawfowl.tablistboard.configure.Scoreboard scoreboard = plugin.getLocales().getAsReferenced(player).getScoreboards().get(boardNumber);
 			Objective objective = Objective.builder().criterion(Criteria.DUMMY.get()).displayName(scoreboard.getObjectiveName(player)).name("obj").build();
 			boolean cancelled;
 			@Override
@@ -106,10 +106,10 @@ public class ScoreboardUtil {
 			task = null;
 		}
 		boards.clear();
-		boards = plugin.getLocales().getLocales().keySet().stream().collect(Collectors.toMap(locale -> locale, locale -> 0));
+		boards = plugin.getLocales().stream().collect(Collectors.toMap(locale -> locale.getLocale(), locale -> 0));
 		task = Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getSwitchScoreboard(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
 			boards.forEach((k, v) -> {
-				if(v + 1 < plugin.getLocales().getLocale(k).getScoreboards().size()) {
+				if(v + 1 < plugin.getLocales().getAsReferenced(k).getScoreboards().size()) {
 					v++;
 				} else v = 0;
 			});

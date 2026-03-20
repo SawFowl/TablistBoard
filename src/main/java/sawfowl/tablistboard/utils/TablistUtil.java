@@ -35,8 +35,8 @@ public class TablistUtil {
 	public void setTablist(ServerPlayer player) {
 		SetTablistEvent tablistEvent = new SetTablistEvent() {
 
-			Component header = plugin.getLocales().getLocale(player.locale()).getTablists().get(getTabNumber(player.locale())).getHeader(player);
-			Component footer = plugin.getLocales().getLocale(player.locale()).getTablists().get(getTabNumber(player.locale())).getFooter(player);
+			Component header = plugin.getLocales().getAsReferenced(player).getTablists().get(getTabNumber(player.locale())).getHeader(player);
+			Component footer = plugin.getLocales().getAsReferenced(player).getTablists().get(getTabNumber(player.locale())).getFooter(player);
 			boolean cancelled;
 			@Override
 			public void setCancelled(boolean cancel) {
@@ -77,7 +77,7 @@ public class TablistUtil {
 		player.tabList().entries().stream().filter(e -> Sponge.server().player(e.profile().uniqueId()).isPresent()).forEach(entry -> {
 			SetTablistEvent.SetEntry setEntry = new SetTablistEvent.SetEntry() {
 
-				Component newDisplayName = plugin.getLocales().getLocale(player.locale()).getTablists().get(getTabNumber(player.locale())).getPattern(entry);
+				Component newDisplayName = plugin.getLocales().getAsReferenced(player).getTablists().get(getTabNumber(player.locale())).getPattern(entry);
 				boolean cancelled;
 				@Override
 				public void setCancelled(boolean cancel) {
@@ -117,10 +117,10 @@ public class TablistUtil {
 			task = null;
 		}
 		tabs.clear();
-		tabs = plugin.getLocales().getLocales().keySet().stream().collect(Collectors.toMap(locale -> locale, locale -> 0));
+		tabs = plugin.getLocales().stream().collect(Collectors.toMap(locale -> locale.getLocale(), locale -> 0));
 		task = Sponge.asyncScheduler().submit(Task.builder().delay(plugin.getConfig().getSwitchTablist(), TimeUnit.SECONDS).plugin(plugin.getPluginContainer()).execute(() -> {
 			tabs.forEach((k, v) -> {
-				if(v + 1 < plugin.getLocales().getLocale(k).getTablists().size()) {
+				if(v + 1 < plugin.getLocales().getAsReferenced(k).getTablists().size()) {
 					v++;
 				} else v = 0;
 			});
