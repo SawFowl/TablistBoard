@@ -37,10 +37,11 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 
 import sawfowl.localeapi.api.ConfigTypes;
-import sawfowl.localeapi.api.LocaleService;
 import sawfowl.localeapi.api.LocalesList;
 import sawfowl.localeapi.api.config.ReferencedConfig;
 import sawfowl.localeapi.api.serializetools.ItemStackSerializerType;
+import sawfowl.localeapi.api.services.ConfigurationService;
+import sawfowl.localeapi.api.services.LocaleService;
 import sawfowl.tablistboard.configure.Config;
 import sawfowl.tablistboard.configure.PluginLocale;
 import sawfowl.tablistboard.utils.RegionUtil;
@@ -105,12 +106,11 @@ public class TablistBoard {
 		locales = LocaleService.getInstance().createLocales(pluginContainer, PluginLocale.class);
 		if(!locales.contains(Locales.DEFAULT)) locales.createReferencedTranslation(ConfigTypes.HOCON, Locales.DEFAULT, PluginLocale.class);
 		if(!locales.contains(Locales.RU_RU)) locales.createReferencedTranslation(ConfigTypes.HOCON, Locales.RU_RU, PluginLocale.createRussianLocale());
-		config = ReferencedConfig.create(pluginContainer, configDirectory, "Config", ConfigTypes.HOCON, ItemStackSerializerType.JSON, null, Config.class);
+		config = ConfigurationService.getInstance().createReferencedConfig(pluginContainer, Config.class).setPath(configDirectory).setName("Config").setType(ConfigTypes.HOCON).setItemStackSerializerType(ItemStackSerializerType.JSON).build();
 	}
 
 	@Listener
 	public void onConstruct(ConstructPluginEvent event) {
-		//logger.warn(Sponge.pluginManager().plugin("regionguard").isPresent());
 		if(Sponge.pluginManager().plugin("regionguard").isPresent()) regionUtil = new RegionUtil();
 		tablistUtil = new TablistUtil(instance);
 		scoreboardUtil = new ScoreboardUtil(instance);
