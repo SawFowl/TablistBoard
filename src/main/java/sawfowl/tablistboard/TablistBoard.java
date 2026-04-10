@@ -119,7 +119,7 @@ public class TablistBoard {
 	@Listener
 	public void onEnable(StartedEngineEvent<Server> event) throws ConfigurateException {
 		scheduleTabAndBoard();
-		if(!Sponge.server().serviceProvider().economyService().isPresent()) logger.warn("Economy plugin not found. Some of the placeholders will not work.");
+		if(!Sponge.server().serviceProvider().economyService().isPresent()) logger.warn(locales.getSystemAsReferenced().getEconomyNotFound());
 	}
 
 	@Listener

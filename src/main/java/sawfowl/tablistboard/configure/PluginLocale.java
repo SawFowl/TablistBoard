@@ -29,6 +29,8 @@ public class PluginLocale implements Translation {
 	private Component reload = toText("&aPlugin has been reloaded.");
 	@Setting("DateTimeFormat")
 	private String dateTimeFormat = "d.MM.yyyy HH:mm:s";
+	@Setting("EconomyNotFound")
+	private String economyNotFound = "Economy plugin not found. Some of the placeholders will not work.";
 	private SimpleDateFormat format;
 
 	public List<Tablist> getTablists() {
@@ -47,6 +49,10 @@ public class PluginLocale implements Translation {
 		return format == null ? format = new SimpleDateFormat(dateTimeFormat) : format;
 	}
 
+	public String getEconomyNotFound() {
+		return economyNotFound;
+	}
+
 	public static PluginLocale createRussianLocale() {
 		PluginLocale localeReference = new PluginLocale();
 		localeReference.tablists = Arrays.asList(new Tablist("&eЗаголовок таблиста\n&dПодзаголовок", "&eПодвал таблиста\n&dСтрока 2", "%player-prefix% %entity-display-name% %player-suffix%"));
@@ -58,6 +64,7 @@ public class PluginLocale implements Translation {
 		scoreboard.put(0, toText("&5Пример строки"));
 		localeReference.scoreboards = Arrays.asList(new Scoreboard(toText("&6&lНазвание борда"), scoreboard));
 		localeReference.reload = toText("&aПлагин перезагружен.");
+		localeReference.economyNotFound = "Плагин экономики не найден. Часть плейсхолдеров не будут работать.";
 		return localeReference;
 	}
 
