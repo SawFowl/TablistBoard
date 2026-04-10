@@ -27,11 +27,10 @@ public class PluginLocale implements Translation {
 	private List<Scoreboard> scoreboards = createScoreboards();
 	@Setting("ReloadMessage")
 	private Component reload = toText("&aPlugin has been reloaded.");
-	@Setting("DateTimeFormat")
-	private String dateTimeFormat = "d.MM.yyyy HH:mm:s";
 	@Setting("EconomyNotFound")
 	private String economyNotFound = "Economy plugin not found. Some of the placeholders will not work.";
-	private SimpleDateFormat format;
+	@Setting("DateTimeFormat")
+	private SimpleDateFormat format = new SimpleDateFormat("MM.dd.yyyy HH:mm:ss");
 
 	public List<Tablist> getTablists() {
 		return tablists;
@@ -46,7 +45,7 @@ public class PluginLocale implements Translation {
 	}
 
 	public SimpleDateFormat getDateTimeFormat() {
-		return format == null ? format = new SimpleDateFormat(dateTimeFormat) : format;
+		return format;
 	}
 
 	public String getEconomyNotFound() {
@@ -65,6 +64,7 @@ public class PluginLocale implements Translation {
 		localeReference.scoreboards = Arrays.asList(new Scoreboard(toText("&6&lНазвание борда"), scoreboard));
 		localeReference.reload = toText("&aПлагин перезагружен.");
 		localeReference.economyNotFound = "Плагин экономики не найден. Часть плейсхолдеров не будут работать.";
+		localeReference.format = new SimpleDateFormat("d.MM.yyyy HH:mm:ss");
 		return localeReference;
 	}
 
